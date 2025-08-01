@@ -3,30 +3,33 @@ import configViewEngine from './config/configEngine';
 import routes from './routes/web';
 import cronJobContronler from './controllers/cronJobContronler';
 import socketIoController from './controllers/socketIoController';
-require('dotenv').config();
-let cookieParser = require('cookie-parser');
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import 'dotenv/config';
+import cookieParser from 'cookie-parser'; // ESM style mein change kiya
+
 const app = express();
-const server = require('http').createServer(app);
-const io = require('socket.io')(server);
+const server = createServer(app);
+const io = new Server(server);
 
 const port = process.env.PORT || 3000;
 
-// Middleware setup (pehle yeh sab load karo)
+// Middleware setup
 app.use(cookieParser());
-app.use(express.static('public')); // Static files serve - public folder se sab load hoga
+app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // View engine setup
 configViewEngine(app);
 
-// Root route (homepage ke liye - yeh pehle add kiya taaki Not Found na aaye)
+// Root route for homepage (Vercel pe 404 fix ke liye strong kiya)
 app.get('/', (req, res) => {
-  console.log('Root route hit - App is live!'); // Logs mein check karne ke liye
-  res.status(200).send('Hello from 71lottery! Your app is live and running on cloud. Test successful!');
+  console.log('Root route hit - App is live on Vercel!');
+  res.status(200).send('Hello from 71lottery! Your app is live on Vercel. Test successful!');
 });
 
-// Init web routes (root ke baad yeh load karo)
+// Init web routes
 routes.initWebRouter(app);
 
 // Cron game 1 Phut
@@ -35,12 +38,15 @@ cronJobContronler.cronJobGame1p(io);
 // Check who connects to server
 socketIoController.sendMessageAdmin(io);
 
-// 404 handler (sab ke last mein - custom error page)
-app.use((req, res, next) => {
-  res.status(404).send('404 - Page Not Found! Check your URL or routes.');
+// 404 handler
+app.use((req, res) => {
+  res.status(404).send('404 - Page Not Found on Vercel');
 });
 
-// Start the server with log
+// Start server (local ke liye), but for Vercel export app
 server.listen(port, () => {
-  console.log(`Server connected successfully on port: ${port}`);
+  console.log(`Server connected on port: ${port}`);
 });
+
+// Vercel serverless ke liye app export (yeh important fix hai)
+module.exports = app;

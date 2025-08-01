@@ -12,7 +12,7 @@ const io = require('socket.io')(server);
 const port = process.env.PORT || 3000;
 
 app.use(cookieParser());
-// app.use(express.static('public'));
+app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -20,6 +20,9 @@ app.use(express.json());
 configViewEngine(app);
 // init Web Routes
 routes.initWebRouter(app);
+app.get('/', (req, res) => {
+  res.send('Hello from 71lottery! Your app is live on Render.');
+});
 
 // Cron game 1 Phut 
 cronJobContronler.cronJobGame1p(io);
@@ -27,9 +30,9 @@ cronJobContronler.cronJobGame1p(io);
 // Check xem ai connect vào sever 
 socketIoController.sendMessageAdmin(io);
 
-// app.all('*', (req, res) => {
-//     return res.render("404.ejs"); 
-// });
+app.all('*', (req, res) => {
+     return res.render("404.ejs"); 
+ });
 
 server.listen(port, () => {
     console.log("Connected success port: " + port);
